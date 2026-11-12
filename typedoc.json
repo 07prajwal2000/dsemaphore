@@ -1,9 +1,19 @@
 {
   "name": "dsemaphore",
-  "entryPoints": ["src/index.ts"],
+  "entryPoints": [
+    "src/index.ts"
+  ],
   "readme": "README.md",
-  "projectDocuments": ["docs/*.md"],
+  "projectDocuments": [
+    "docs/getting-started.md",
+    "docs/guide.md",
+    "docs/custom-transport.md"
+  ],
   "out": "site",
   "excludePrivate": true,
-  "validation": { "invalidLink": true, "notExported": true }
+  "validation": {
+    "invalidLink": true,
+    "notExported": true
+  },
+  "favicon": "assets/logo.svg"
 }
