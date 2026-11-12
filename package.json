@@ -1,6 +1,6 @@
 {
   "name": "dsemaphore",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Distributed counting semaphore for Node.js/TypeScript, like C# SemaphoreSlim, with pluggable transports. Redis and Valkey (ioredis) out of the box.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
