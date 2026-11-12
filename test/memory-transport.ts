@@ -1,6 +1,6 @@
 import type { Transport } from '../src';
 
-/** In-process transport for unit tests — also proves the core works with any backend. */
+/** In-process transport for unit tests; also proves the core works with any backend. */
 export class MemoryTransport implements Transport {
   private readonly keys = new Map<string, Map<string, number>>();
 

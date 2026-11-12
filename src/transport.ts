@@ -1,6 +1,6 @@
 /**
  * Storage backend for DSemaphore. Implement this to support a new backend
- * (Postgres, etcd, DynamoDB, ...) — the public DSemaphore API never changes.
+ * (Postgres, etcd, DynamoDB, ...); the public DSemaphore API never changes.
  *
  * Contract:
  * - `tryAcquire` is atomic: concurrent callers never push live holders above `limit`.

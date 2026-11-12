@@ -1,6 +1,6 @@
 # dsemaphore
 
-Distributed counting semaphore for Node/TS — like C#'s `SemaphoreSlim`, but the limit holds across processes and machines. Redis/Valkey out of the box; the storage backend is pluggable.
+Distributed counting semaphore for Node/TS, like C#'s `SemaphoreSlim`, but the limit holds across processes and machines. Redis/Valkey out of the box; the storage backend is pluggable.
 
 ```ts
 import { DSemaphore, redisTransport } from 'dsemaphore';
@@ -18,7 +18,7 @@ const p = await sem.tryAcquire(); // never waits: Permit | null
 await transport.close(); // only quits connections the transport created itself
 ```
 
-- `leaseMs` (default 30s): a holder that crashes loses its slot after this long. Work running longer than the lease can exceed `limit` — size the lease generously.
+- `leaseMs` (default 30s): a holder that crashes loses its slot after this long. Work running longer than the lease can exceed `limit`, so size the lease generously.
 - `acquire` polls (default ~50ms, jittered) and accepts an `AbortSignal`.
 - Redis/Valkey >= 5. Time is judged by the server, so client clock skew is harmless.
 
