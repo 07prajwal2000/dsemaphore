@@ -1,0 +1,50 @@
+{
+  "name": "dsemaphore",
+  "version": "0.1.0",
+  "description": "Distributed counting semaphore (like C# SemaphoreSlim) with pluggable transports. Redis/Valkey out of the box.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:unit": "vitest run test/unit",
+    "test:integration": "vitest run test/integration",
+    "prepublishOnly": "npm run build",
+    "docs": "typedoc"
+  },
+  "keywords": [
+    "semaphore",
+    "distributed",
+    "redis",
+    "valkey",
+    "lock",
+    "concurrency"
+  ],
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "ioredis": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "testcontainers": "^12.2.1",
+    "typedoc": "^0.28.20",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.0"
+  },
+  "author": "07prajwal2000",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/07prajwal2000/dsemaphore.git"
+  },
+  "homepage": "https://github.com/07prajwal2000/dsemaphore#readme",
+  "bugs": {
+    "url": "https://github.com/07prajwal2000/dsemaphore/issues"
+  }
+}

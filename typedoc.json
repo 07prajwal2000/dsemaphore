@@ -1,0 +1,9 @@
+{
+  "name": "dsemaphore",
+  "entryPoints": ["src/index.ts"],
+  "readme": "README.md",
+  "projectDocuments": ["docs/*.md"],
+  "out": "site",
+  "excludePrivate": true,
+  "validation": { "invalidLink": true, "notExported": true }
+}
