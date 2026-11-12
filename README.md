@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/07prajwal2000/dsemaphore/main/assets/logo.svg" alt="dsemaphore logo" width="96" height="96">
+  <img src="assets/logo.svg" alt="dsemaphore logo" width="96" height="96">
 </p>
 
 # dsemaphore
@@ -94,19 +94,6 @@ A slot is a lease (`leaseMs`, default 30 seconds). If a holder crashes without r
 - [Guide](https://07prajwal2000.github.io/dsemaphore/documents/Guide.html): leases, waiting, errors, connection options
 - [Custom transports](https://07prajwal2000.github.io/dsemaphore/documents/Custom_transports.html): add a new backend
 - [API reference](https://07prajwal2000.github.io/dsemaphore/modules.html): generated from the source
-
-## Development
-
-```sh
-npm install
-npm run build              # compile to dist/
-npm run test:unit          # in-memory transport, no Docker needed
-npm run test:integration   # starts real Redis and Valkey containers (needs Docker)
-npm test                   # both
-npm run docs               # generate the documentation site into site/
-```
-
-Releases are made from version tags: `npm version patch && git push --follow-tags`. The Release workflow tests, publishes to npm with provenance, and creates the GitHub Release.
 
 ## License
 
