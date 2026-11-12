@@ -62,11 +62,31 @@ Expiry is judged by the Redis server clock, so skewed client clocks don't matter
 
 `acquire` retries every `pollMs` (default 50 ms, with jitter) until a slot frees up. Waiters are not served in FIFO order. For very high contention, raise `pollMs` to reduce load on Redis.
 
+## Resetting: `releaseAll`
+
+Leases already recover permits from crashed holders, but only after `leaseMs`. When you *know* the holders are gone, for example after scaling down or removing a resource, `releaseAll` frees their slots immediately:
+
+```ts
+// free every holder of this one semaphore
+await sem.releaseAll();
+
+// free every semaphore whose name starts with "db-42:" (e.g. everything tied to a removed resource)
+await sem.releaseAll({ prefix: 'db-42:' });
+```
+
+It resolves with the number of live holders that were freed. A few things to know:
+
+- It is a **force reset**. Holders are not notified, and their later `permit.release()` resolves `false`. If a holder is actually still running, the semaphore can admit more than `limit` callers until it finishes.
+- It fits semaphores scoped to something that can disappear, such as one semaphore per resource (`db-42:writes`, `db-42:reports`). Run it with that resource's prefix when the resource is scaled down or removed.
+- It is a poor fit for one shared semaphore across a fleet where only some instances left. That would also free the slots of the instances still running. Rely on leases there.
+- An empty `prefix` is rejected, so a reset can't wipe every semaphore by accident.
+- With the Redis transport the prefix is matched literally (`*` and `?` are not wildcards), using `SCAN`, so it does not block the server.
+
 ## Errors
 
 | Thrown | When |
 | --- | --- |
-| `RangeError` | constructor given a non-integer or `< 1` `limit`, or a non-positive `leaseMs`/`pollMs` |
+| `RangeError` | constructor given a non-integer or `< 1` `limit`, or a non-positive `leaseMs`/`pollMs`; `releaseAll` given an empty `prefix` |
 | {@link TimeoutError} | `acquire` hit `timeoutMs` |
 | the signal's `reason` | `acquire`'s `AbortSignal` aborted |
 | ioredis errors | the connection to Redis failed; they propagate unchanged |

@@ -1,5 +1,5 @@
 import Redis, { type RedisOptions } from 'ioredis';
-import type { Transport } from './transport';
+import type { ReleaseTarget, Transport } from './transport';
 
 const DEFAULT_KEY_PREFIX = 'dsemaphore:';
 
@@ -29,10 +29,19 @@ const COUNT_SCRIPT =
   `
 return redis.call('ZCOUNT', KEYS[1], '(' .. now, '+inf')`;
 
+// KEYS[1] = set. Deletes it and returns the number of unexpired holders it had.
+const RELEASE_ALL_SCRIPT =
+  SERVER_NOW_MS +
+  `
+local live = redis.call('ZCOUNT', KEYS[1], '(' .. now, '+inf')
+redis.call('DEL', KEYS[1])
+return live`;
+
 /** `Redis` plus the scripted commands registered by `RedisTransport`. */
 type ScriptedRedis = Redis & {
   dsemAcquire(key: string, id: string, limit: number, leaseMs: number): Promise<number>;
   dsemCount(key: string): Promise<number>;
+  dsemReleaseAll(key: string): Promise<number>;
 };
 
 export type RedisConnection = Redis | string | RedisOptions;
@@ -45,6 +54,9 @@ function resolveClient(conn: RedisConnection): { client: Redis; owned: boolean }
   return { client: new Redis(conn), owned: true };
 }
 
+/** Make a string match literally inside a SCAN MATCH glob. */
+const escapeGlob = (s: string) => s.replace(/[\\*?[\]]/g, '\\$&');
+
 class RedisTransport implements Transport {
   private readonly client: ScriptedRedis;
   private readonly ownsClient: boolean;
@@ -53,6 +65,7 @@ class RedisTransport implements Transport {
     const { client, owned } = resolveClient(conn);
     client.defineCommand('dsemAcquire', { numberOfKeys: 1, lua: ACQUIRE_SCRIPT });
     client.defineCommand('dsemCount', { numberOfKeys: 1, lua: COUNT_SCRIPT });
+    client.defineCommand('dsemReleaseAll', { numberOfKeys: 1, lua: RELEASE_ALL_SCRIPT });
     this.client = client as ScriptedRedis;
     this.ownsClient = owned;
   }
@@ -67,6 +80,17 @@ class RedisTransport implements Transport {
 
   count(key: string): Promise<number> {
     return this.client.dsemCount(this.redisKey(key));
+  }
+
+  async releaseAll(target: ReleaseTarget): Promise<number> {
+    if ('key' in target) return this.client.dsemReleaseAll(this.redisKey(target.key));
+
+    let freed = 0;
+    const match = escapeGlob(this.redisKey(target.prefix)) + '*';
+    for await (const keys of this.client.scanStream({ match, count: 100 })) {
+      for (const key of keys as string[]) freed += await this.client.dsemReleaseAll(key);
+    }
+    return freed;
   }
 
   async close(): Promise<void> {

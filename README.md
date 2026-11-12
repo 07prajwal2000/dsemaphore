@@ -67,6 +67,7 @@ Every process that uses the same `name` and the same Redis shares the same 5 slo
 | `await sem.tryAcquire()` | Never waits. Returns a `Permit`, or `null` if the semaphore is full. |
 | `await sem.release(permit)` / `await permit.release()` | Frees the slot. |
 | `await sem.currentCount()` | Free slots right now (a snapshot, like `SemaphoreSlim.CurrentCount`). |
+| `await sem.releaseAll({ prefix? })` | Admin reset. Force-frees every holder of this semaphore, or of every semaphore whose name starts with `prefix`. Returns how many holders were freed. |
 
 ## Connecting to Redis or Valkey
 
@@ -86,7 +87,7 @@ A slot is a lease (`leaseMs`, default 30 seconds). If a holder crashes without r
 
 ## Custom transports
 
-`DSemaphore` talks to a `Transport` interface (`tryAcquire`, `release`, `count`, `close`), never to Redis directly. To support another backend, implement the interface and run the shared contract tests in `test/contract.ts` against it. See [Custom transports](https://07prajwal2000.github.io/dsemaphore/documents/Custom_transports.html).
+`DSemaphore` talks to a `Transport` interface (`tryAcquire`, `release`, `count`, `releaseAll`, `close`), never to Redis directly. To support another backend, implement the interface and run the shared contract tests in `test/contract.ts` against it. See [Custom transports](https://07prajwal2000.github.io/dsemaphore/documents/Custom_transports.html).
 
 ## Documentation
 

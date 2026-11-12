@@ -13,6 +13,7 @@ interface Transport {
   tryAcquire(key: string, id: string, limit: number, leaseMs: number): Promise<boolean>;
   release(key: string, id: string): Promise<boolean>;
   count(key: string): Promise<number>;
+  releaseAll(target: { key: string } | { prefix: string }): Promise<number>;
   close(): Promise<void>;
 }
 ```
@@ -24,7 +25,8 @@ interface Transport {
 3. **One clock.** Judge expiry with the store's clock, not each client's.
 4. **`count` ignores expired holders**, even ones not yet purged.
 5. **`release` of an unknown id** resolves `false` and does nothing.
-6. **`close` frees only what the transport created itself.**
+6. **`releaseAll` force-frees every holder** of the exact `key`, or of every key starting with the literal `prefix` (no wildcards), and resolves with the number of live holders freed. Holders' later `release` resolves `false`.
+7. **`close` frees only what the transport created itself.**
 
 ## Prove it with the contract tests
 

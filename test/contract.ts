@@ -58,6 +58,33 @@ export function transportContract(name: string, make: () => Transport | Promise<
       expect(await t.count(k)).toBe(0);
     });
 
+    it('releaseAll({ key }) frees every holder of that key only', async () => {
+      const k = key(), other = key();
+      await t.tryAcquire(k, 'a', 3, 5_000);
+      await t.tryAcquire(k, 'b', 3, 5_000);
+      await t.tryAcquire(other, 'c', 3, 5_000);
+      expect(await t.releaseAll({ key: k })).toBe(2);
+      expect(await t.count(k)).toBe(0);
+      expect(await t.count(other)).toBe(1);
+      expect(await t.release(k, 'a')).toBe(false);
+      expect(await t.releaseAll({ key: k })).toBe(0);
+    });
+
+    it('releaseAll({ prefix }) frees every matching key, treating the prefix literally', async () => {
+      const p = `pfx-${randomUUID()}-`;
+      await t.tryAcquire(p + 'a', 'x', 3, 5_000);
+      await t.tryAcquire(p + 'b', 'y', 3, 5_000);
+      await t.tryAcquire(p + 'b', 'z', 3, 5_000);
+      const unrelated = key();
+      await t.tryAcquire(unrelated, 'u', 3, 5_000);
+
+      expect(await t.releaseAll({ prefix: p + '*' })).toBe(0); // '*' is not a wildcard
+      expect(await t.releaseAll({ prefix: p })).toBe(3);
+      expect(await t.count(p + 'a')).toBe(0);
+      expect(await t.count(p + 'b')).toBe(0);
+      expect(await t.count(unrelated)).toBe(1);
+    });
+
     it('keys are independent', async () => {
       expect(await take(t, key(), 1)).toBe(true);
     });

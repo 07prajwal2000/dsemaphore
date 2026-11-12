@@ -33,6 +33,31 @@ describe('DSemaphore', () => {
     expect(await s.currentCount()).toBe(1);
   });
 
+  it('releaseAll frees every holder of this semaphore and reports how many', async () => {
+    const s = make(3);
+    const p = (await s.tryAcquire())!;
+    await s.tryAcquire();
+    expect(await s.releaseAll()).toBe(2);
+    expect(await s.currentCount()).toBe(3);
+    expect(await p.release()).toBe(false); // old permit no longer holds anything
+    expect(await s.tryAcquire()).not.toBeNull();
+  });
+
+  it('releaseAll({ prefix }) clears all semaphores with that name prefix, nothing else', async () => {
+    const transport = new MemoryTransport();
+    const sem = (name: string) => new DSemaphore({ name, limit: 1, transport });
+    const [a, b, other] = [sem('job-a'), sem('job-b'), sem('mail')];
+    for (const s of [a, b, other]) await s.tryAcquire();
+    expect(await a.releaseAll({ prefix: 'job-' })).toBe(2);
+    expect(await a.currentCount()).toBe(1);
+    expect(await b.currentCount()).toBe(1);
+    expect(await other.currentCount()).toBe(0);
+  });
+
+  it('releaseAll rejects an empty prefix', async () => {
+    await expect(make(1).releaseAll({ prefix: '' })).rejects.toBeInstanceOf(RangeError);
+  });
+
   it('permit.release() frees the slot and is idempotent', async () => {
     const s = make(1);
     const p = (await s.tryAcquire())!;

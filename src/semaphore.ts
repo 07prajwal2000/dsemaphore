@@ -33,6 +33,14 @@ export interface AcquireOptions {
   signal?: AbortSignal;
 }
 
+export interface ReleaseAllOptions {
+  /**
+   * Clear every semaphore whose name starts with this (on the same transport), not just this one.
+   * Must be non-empty, so a reset can't wipe everything by accident.
+   */
+  prefix?: string;
+}
+
 export class DSemaphore {
   private readonly name: string;
   private readonly limit: number;
@@ -76,6 +84,16 @@ export class DSemaphore {
   async currentCount(): Promise<number> {
     const held = await this.transport.count(this.name);
     return Math.max(0, this.limit - held);
+  }
+
+  /**
+   * Admin reset: force-free every holder of this semaphore, or of all semaphores named
+   * `prefix*`. Holders are not notified; their later `release()` resolves false.
+   * Resolves with the number of live holders freed.
+   */
+  async releaseAll({ prefix }: ReleaseAllOptions = {}): Promise<number> {
+    if (prefix === '') throw new RangeError('prefix must not be empty');
+    return this.transport.releaseAll(prefix === undefined ? { key: this.name } : { prefix });
   }
 
   /** Free a permit (same as `permit.release()`). */
