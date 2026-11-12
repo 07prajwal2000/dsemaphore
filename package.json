@@ -1,7 +1,7 @@
 {
   "name": "dsemaphore",
   "version": "0.1.0",
-  "description": "Distributed counting semaphore (like C# SemaphoreSlim) with pluggable transports. Redis/Valkey out of the box.",
+  "description": "Distributed counting semaphore for Node.js/TypeScript, like C# SemaphoreSlim, with pluggable transports. Redis and Valkey (ioredis) out of the box.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -20,11 +20,16 @@
   },
   "keywords": [
     "semaphore",
+    "distributed-semaphore",
+    "semaphoreslim",
     "distributed",
+    "concurrency",
+    "mutex",
+    "lock",
     "redis",
     "valkey",
-    "lock",
-    "concurrency"
+    "ioredis",
+    "typescript"
   ],
   "license": "MIT",
   "type": "commonjs",

@@ -1,29 +1,37 @@
-name: Publish
+name: Release
 
-# Push a tag matching package.json's version (e.g. `npm version patch && git push --follow-tags`).
-# Auth is npm trusted publishing (OIDC): no NPM_TOKEN secret. Configure the trusted publisher on
-# npmjs.com -> dsemaphore -> Settings: owner 07prajwal2000, repo dsemaphore, workflow publish.yml.
+# Releases happen ONLY from version tags: `npm version patch && git push --follow-tags`.
+# Nothing else (pushes to main, PRs) publishes. Auth is npm trusted publishing (OIDC): no NPM_TOKEN.
+# Configure it on npmjs.com -> dsemaphore -> Settings: owner 07prajwal2000, repo dsemaphore, workflow publish.yml.
 on:
   push:
     tags: ['v*']
 
 permissions:
-  contents: read
-  id-token: write # lets npm exchange the GitHub OIDC token for publish rights (and signs provenance)
+  contents: write # create the GitHub Release
+  id-token: write # npm OIDC trusted publishing + provenance
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Tag must be on main and match package.json version
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+          test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
       - uses: actions/setup-node@v4
         with:
           node-version: 24 # ships npm >= 11.5.1, required for trusted publishing
           cache: npm
-      - name: Tag must match package.json version
-        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
       - run: npm ci
       - run: npm run build
       - run: npm run test:unit
       - run: npm run test:integration
       - run: npm publish
+      - name: GitHub Release
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}
